@@ -5,6 +5,7 @@ Created on Sat Dec  8 18:45:21 2018
 @author: K
 """
 
+import sys, getopt
 from PIL import ImageDraw, ImageFont, Image
 
 #TODO: Fix this, brightness overlaps to white too often
@@ -45,8 +46,9 @@ def getAvgColor(rgb):
         if color[i] == max(color) and color[i] <= 225:
             color[i] += 30
     """
-            
-    return (color[0], color[1], color[2])
+    
+    return bright(1.3, color)        
+    #return (color[0], color[1], color[2])
 
 def centerImg(width, height):
     startPos = []
@@ -75,7 +77,7 @@ def generateText(pixels, width, height, word, newImage):
     
     #Use one space for now
     word += " "
-    print("1 space, goes till width: " + str((numSpace * len(word) * 7)))
+    #print("1 space, goes till width: " + str((numSpace * len(word) * 7)))
     
     heightBound = int(height / 12) * 12
     widthBound = numSpace * len(word) * 7
@@ -117,19 +119,46 @@ def generateText(pixels, width, height, word, newImage):
     
     
 if __name__ == "__main__":
-    #TODO: take in the image and text from command line, for now, we just hardcode. 
-    theWord = "toucan"
     
+    #takes in the list of arguments.
+    cmdArgs = sys.argv[1:]
+    r = g = b = 0
     
-    image = Image.open("toucan.jpg")
+    if (("-h" or "-help") in cmdArgs):
+        print("Usage: \n -i {filename} to select base image \n -w {word}     to select word \n -c {r g b}    to select background color. Default is black")
+    
+    #Could have made this simpler by not using a loop, and having fixed positions for each flag, but this allows for flexibility in order/using not using flags.
+    #Only checks that there are values at index positions, type checking still needs to be done
+    for i in range(len(cmdArgs)):
+        try:
+            if cmdArgs[i] == "-i":
+                imageName = cmdArgs[i + 1]
+            elif cmdArgs[i] == "-w":
+                theWord = cmdArgs[i + 1]
+            elif cmdArgs[i] == "-c":
+                r = cmdArgs[i + 1]
+                g = cmdArgs[i + 2]
+                b = cmdArgs[i + 3]
+        except IndexError:
+            print("Incorrect number of arguments. Use -h or -help to see proper usage.")
+            sys.exit(0)
+     
+    #theWord = "toucan"
+    
+    #TODO: Type checking for passed in variables.
+    
+   #try:
+    image = Image.open(imageName)
+    #except IOError:
+        #print("An error occured opening the file.")
+        #sys.exit(0)
     #image = Image.open("vaporeon.jpeg")
     pixel = image.load()
     width, height = image.size
     print(f"Width: {width}, Height: {height}")
     
-    #TODO: Color of background going to be variable, taken in from command line.
-    newImage = Image.new('RGB', (1920, 1200), color = (21, 25, 32)) 
-    #newImage = Image.new('RGB', (1920, 1200), color = (0, 0, 0))
+    newImage = Image.new('RGB', (1920, 1200), color = (r, g, b)) 
+    #newImage = Image.new('RGB', (1920, 1200), color = (21,25, 30))
 
     
     generateText(pixel, width, height, theWord, newImage)
